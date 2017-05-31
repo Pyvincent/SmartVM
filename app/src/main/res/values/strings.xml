@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">SmartVM</string>
+    <string name="vcs_serice_name">com.inhand.vcs.service.VendingCloudService</string>
+    <string name="open_binder_action">com.inhand.intent.OPEN_BINDER</string>
+
+
+    <string name="lorem_ipsum_short">这个人有病.其实我就是想在这个地方写点字</string>
+    <string name="lorem_ipsum_long">这个人的一生是光荣的一生，伟大的一生，为人民服务的一生，他还没有死，所以没有泰山重
+    毛主席教导我们要抛头颅洒热血，为社会主义事业奉献血和热，我编不下去了</string>
+
+    <string-array name="array_names">
+        <item>"Vincent-王少兵"</item>
+        <item>"Vincent-王少兵"</item>
+        <item>"Vincent-王少兵"</item>
+        <item>"Vincent-王少兵"</item>
+        <item>"Eduard Baev"</item>
+        <item>"Iliya Bershadskiy"</item>
+        <item>"Kirill Penzykov"</item>
+        <item>"Konstantin Rudenko"</item>
+        <item>"Oleksii Shliama"</item>
+        <item>"Pavel Apisov"</item>
+        <item>"Vadim Ooleynik"</item>
+    </string-array>
+</resources>
