@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
@@ -81,25 +82,19 @@ public class SmartVM extends AppCompatActivity {
                     wechattImg.setImageBitmap(qrBitmap);
                     break;
                 case 2:
-                    showMainPage();break;
-
+                    grid_goods.invalidate();
+                    break;
 
             }
-//            if (msg.what == 1) {
-//                String wechaturl = msg.getData().getString("wechaturl");
-//                Log.i("put QR--------", wechaturl);
-//                Bitmap qrBitmap = Utils.generateBitmap(wechaturl, 400, 400);
-//                wechattImg.setImageBitmap(qrBitmap);
-//            }
-//            if(msg.what==2){
-//
-//            }
+
         }
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         mSmartvm = this;
         mContext = SmartVM.this;
         setContentView(R.layout.activity_main);

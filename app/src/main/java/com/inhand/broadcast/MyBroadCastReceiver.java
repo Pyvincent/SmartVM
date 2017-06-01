@@ -15,6 +15,9 @@ public class MyBroadCastReceiver extends BroadcastReceiver {
     private final static String TAG=MyBroadCastReceiver.class.getSimpleName();
     Myhandler myhandler;
 
+    public MyBroadCastReceiver() {
+    }
+
     public MyBroadCastReceiver(Myhandler mh) {
         myhandler = mh;
     }
