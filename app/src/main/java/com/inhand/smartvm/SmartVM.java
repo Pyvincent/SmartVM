@@ -17,10 +17,15 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
-import android.widget.TextView;
+import android.widget.Toast;
 
+import com.inhand.adapter.MyAdapter;
+import com.inhand.bean.Goods;
 import com.inhand.broadcast.MyBroadCastReceiver;
 import com.inhand.handle.Myhandler;
 import com.inhand.open.aidl.IOpenService;
@@ -28,63 +33,126 @@ import com.inhand.open.aidl.InterfaceConstant;
 import com.inhand.open.aidl.OpenCabinetBean;
 import com.inhand.open.aidl.OpenChannelBean;
 import com.inhand.open.aidl.OpenGoodsBean;
+import com.inhand.open.aidl.OpenMachineConfig;
 import com.inhand.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class SmartVM extends AppCompatActivity {
 
     private MyBroadCastReceiver myBroadCastReceiver;
-    private TextView mid;
-    private ImageView imageView;
-    private ImageView wechattImg;
+    private IOpenService iOpenService = null;
+    private List<OpenCabinetBean> mCabinetBeanList = null;
+    private OpenMachineConfig mMachineConfig = null;
+    private SmartVM mSmartvm = null;
     private Context mContext;
 
-    private String name;
-    private String imgurl;
+    private GridView grid_goods;
+    private BaseAdapter mAdapter = null;
+    private ArrayList<Goods> mData = null;
 
-    MyServiceConnect conn = new MyServiceConnect();
+    private ImageView wechattImg;
 
+    ServiceConnection mServiceConnect = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            iOpenService = IOpenService.Stub.asInterface(service);
+            showMainPage();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            iOpenService = null;
+
+        }
+    };
 
     Myhandler myhandler = new Myhandler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            if (msg.what == 1) {
-                String wechaturl=msg.getData().getString("wechaturl");
-                Log.i("put QR--------",wechaturl);
-                  Bitmap qrBitmap = Utils.generateBitmap(wechaturl,400, 400);
-                  wechattImg.setImageBitmap(qrBitmap);
+            switch (msg.what) {
+                case 1:
+                    String wechaturl = msg.getData().getString("wechaturl");
+                    Log.i("put QR--------", wechaturl);
+                    Bitmap qrBitmap = Utils.generateBitmap(wechaturl, 400, 400);
+                    wechattImg.setImageBitmap(qrBitmap);
+                    break;
+                case 2:
+                    showMainPage();break;
+
+
             }
+//            if (msg.what == 1) {
+//                String wechaturl = msg.getData().getString("wechaturl");
+//                Log.i("put QR--------", wechaturl);
+//                Bitmap qrBitmap = Utils.generateBitmap(wechaturl, 400, 400);
+//                wechattImg.setImageBitmap(qrBitmap);
+//            }
+//            if(msg.what==2){
+//
+//            }
         }
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        mSmartvm = this;
         mContext = SmartVM.this;
-        mid = (TextView) findViewById(R.id.mid);
-        imageView = (ImageView) findViewById(R.id.imageView);
-
+        setContentView(R.layout.activity_main);
+        grid_goods = (GridView) findViewById(R.id.grid_goods);
         bindVendingCloudService();
         registerBroadcastReceiver();
 
-        imageView.setOnClickListener(new View.OnClickListener() {
+        mData = new ArrayList<Goods>();
+        mAdapter = new MyAdapter<Goods>(mData, R.layout.item_grid_icon) {
+
             @Override
-            public void onClick(View v) {
+            public void bindView(ViewHolder holder, Goods obj) {
+                holder.setImagebyBitmap(R.id.img_icon, obj.getGoodsBitmap());
+                holder.setText(R.id.txt_icon, obj.getGoodsName());
+            }
+        };
+        grid_goods.setAdapter(mAdapter);
+        grid_goods.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(mContext, "你点击了~" + position + "~项", Toast.LENGTH_SHORT).show();
+                int ChannelId = 0;
 
                 try {
-                    List<OpenCabinetBean> mCabinetBeanList;
-                    mCabinetBeanList = conn.iOpenService.getOpenCabinetList();
-                    OpenChannelBean openChannelBean = mCabinetBeanList.get(0).getChannelList().get(0);
-                    conn.iOpenService.obtainOpenIndentCode(openChannelBean, 2);     //获取二维码
+                    mMachineConfig = iOpenService.getOpenMachineConfig();
+                    List<OpenChannelBean> two = mCabinetBeanList.get(0).getChannelList();
+                    ChannelId = Integer.parseInt(two.get(position).getStrChannelId());
+                    Log.i("KKKKKKKKK", String.valueOf(ChannelId));
 
+                    OpenChannelBean openChannelBean = mCabinetBeanList.get(0).getChannelList().get(position);
+                    iOpenService.obtainOpenIndentCode(openChannelBean, 2);     //获取二维码
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
-                initPopWindow(v);
+                initPopWindow(view);
+            }
+        });
+
+
+//        imageView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                try {
+//                    List<OpenCabinetBean> mCabinetBeanList;
+//                    mCabinetBeanList = iOpenService.getOpenCabinetList();
+//                    OpenChannelBean openChannelBean = mCabinetBeanList.get(0).getChannelList().get(0);
+//                    iOpenService.obtainOpenIndentCode(openChannelBean, 2);     //获取二维码
+//
+//                } catch (RemoteException e) {
+//                    e.printStackTrace();
+//                }
+//                initPopWindow(v);
 //
 //                Intent intent = new Intent(mContext, MainUI.class);
 ////                Bundle bd = new Bundle();
@@ -93,8 +161,8 @@ public class SmartVM extends AppCompatActivity {
 ////                intent.putExtras(bd);
 //                startActivity(intent);
 
-            }
-        });
+//            }
+//        });
 //        button.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -131,6 +199,12 @@ public class SmartVM extends AppCompatActivity {
 //        });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
     private void initPopWindow(View v) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.wechat, null, false);
         wechattImg = (ImageView) view.findViewById(R.id.wechatqr);
@@ -160,56 +234,63 @@ public class SmartVM extends AppCompatActivity {
     }
 
 
-    private void showImg() {
+    private void showMainPage() {
         try {
-            List<OpenCabinetBean> mCabinetBeanList = conn.iOpenService.getOpenCabinetList();
-            List<OpenGoodsBean> one = mCabinetBeanList.get(0).getGoodsList();
-
-            name = one.get(0).getName();
-            imgurl = one.get(0).getImgUrl();
-            mid.append(name + "\n");
-
-            Bitmap bitmap = Utils.getLoacalBitmap("/sdcard/inbox/data/picture/" + imgurl + ".png");
-            imageView.setImageBitmap(bitmap);    //设置Bitmap
+            if (!checkServiceIsNull("showImg")) {
+                mCabinetBeanList = iOpenService.getOpenCabinetList();
+            }
+            if (mCabinetBeanList != null) {
+                List<OpenGoodsBean> one = mCabinetBeanList.get(0).getGoodsList();
+                for (int i = 0; i < one.size(); i++) {
+                    mData.add(new Goods(Utils.getLoacalBitmap("/sdcard/inbox/data/picture/" + one.get(i).getImgUrl() + ".png"), one.get(i).getName()));
+                }
+            }
 
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
-
-    class MyServiceConnect implements ServiceConnection {
-
-        IOpenService iOpenService;
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            iOpenService = IOpenService.Stub.asInterface(service);
-            showImg();
-
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            iOpenService = null;
-        }
-
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(myBroadCastReceiver);
-        unbindService(conn);
+        unBindVendingCloudService();
+        mSmartvm = null;
+
+    }
+
+    public SmartVM getInstance() {
+        return mSmartvm;
+    }
+
+    public IOpenService getiOpenService() {
+        return iOpenService;
+    }
+
+    public boolean checkServiceIsNull(String method) {
+        if (null == iOpenService) {
+            bindVendingCloudService();
+            return true;
+        }
+        return false;
     }
 
     private void bindVendingCloudService() {
-        if (null != conn.iOpenService) {
+        if (null != iOpenService) {
             return;
         }
         Intent intent = new Intent(getString(R.string.vcs_serice_name));
         intent.setAction(getString(R.string.open_binder_action));
-        bindService(intent, conn, Context.BIND_AUTO_CREATE);
+        bindService(intent, mServiceConnect, Context.BIND_AUTO_CREATE);
+
+    }
+
+    private void unBindVendingCloudService() {
+        if (null == iOpenService) {
+            return;
+        }
+        unbindService(mServiceConnect);
 
     }
 
@@ -239,6 +320,5 @@ public class SmartVM extends AppCompatActivity {
         filter.addAction(InterfaceConstant.ACTION_OPEN_QR_INDENT_RESP);
         this.registerReceiver(myBroadCastReceiver, filter);
     }
-
 }
 

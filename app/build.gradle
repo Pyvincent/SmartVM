@@ -40,5 +40,5 @@ dependencies {
     compile files('libs/core-3.2.1.jar')
     compile project(path: ':library')
     compile project(':library')
-    compile 'com.github.ozodrukh:CircularReveal:2.0.1@aar'
+    compile 'com.github.ozodrukh:CircularReveal:1.0.5@aar'
 }
