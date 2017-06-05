@@ -1,5 +1,9 @@
 <resources>
+
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
     <string name="app_name">SmartVM</string>
+
     <string name="vcs_serice_name">com.inhand.vcs.service.VendingCloudService</string>
     <string name="open_binder_action">com.inhand.intent.OPEN_BINDER</string>
 

@@ -43,8 +43,9 @@ import java.util.List;
 
 public class SmartVM extends AppCompatActivity {
 
+    private final static String TAG=SmartVM.class.getSimpleName();
     private MyBroadCastReceiver myBroadCastReceiver;
-    private IOpenService iOpenService = null;
+    private IOpenService iOpenService;
     private List<OpenCabinetBean> mCabinetBeanList = null;
     private OpenMachineConfig mMachineConfig = null;
     private SmartVM mSmartvm = null;
@@ -56,9 +57,12 @@ public class SmartVM extends AppCompatActivity {
 
     private ImageView wechattImg;
 
+    boolean mIsBind = false;
+
     ServiceConnection mServiceConnect = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            mIsBind=true;
             iOpenService = IOpenService.Stub.asInterface(service);
             showMainPage();
         }
@@ -66,7 +70,7 @@ public class SmartVM extends AppCompatActivity {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             iOpenService = null;
-
+            mIsBind=false;
         }
     };
 
@@ -80,11 +84,8 @@ public class SmartVM extends AppCompatActivity {
                     Log.i("put QR--------", wechaturl);
                     Bitmap qrBitmap = Utils.generateBitmap(wechaturl, 400, 400);
                     wechattImg.setImageBitmap(qrBitmap);
-                    break;
                 case 2:
-                    grid_goods.invalidate();
-                    break;
-
+                    Log.d(TAG, "handleMessage: 更新UI");
             }
 
         }
@@ -116,6 +117,7 @@ public class SmartVM extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(mContext, "你点击了~" + position + "~项", Toast.LENGTH_SHORT).show();
+//                startActivity(new Intent(mContext,DemoActivity.class));
                 int ChannelId = 0;
 
                 try {
@@ -132,68 +134,7 @@ public class SmartVM extends AppCompatActivity {
                 initPopWindow(view);
             }
         });
-
-
-//        imageView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//                try {
-//                    List<OpenCabinetBean> mCabinetBeanList;
-//                    mCabinetBeanList = iOpenService.getOpenCabinetList();
-//                    OpenChannelBean openChannelBean = mCabinetBeanList.get(0).getChannelList().get(0);
-//                    iOpenService.obtainOpenIndentCode(openChannelBean, 2);     //获取二维码
-//
-//                } catch (RemoteException e) {
-//                    e.printStackTrace();
-//                }
-//                initPopWindow(v);
-//
-//                Intent intent = new Intent(mContext, MainUI.class);
-////                Bundle bd = new Bundle();
-////                bd.putString("name", name);
-////                bd.putString("imgurl", imgurl);
-////                intent.putExtras(bd);
-//                startActivity(intent);
-
-//            }
-//        });
-//        button.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//                try {
-//                    mCabinetBeanList = iOpenService.getOpenCabinetList();
-//                    List<OpenGoodsBean> one = mCabinetBeanList.get(0).getGoodsList();
-//
-////                    for (int i = 0; i < one.size(); i++) {
-////                        String imgurl = one.get(i).getImgUrl();
-////                        mid.append(imgurl + "\n");
-////                    }
-//                    String imgurl = one.get(0).getImgUrl();
-//                    mid.append(imgurl + "\n");
-//
-//                    Bitmap bitmap = getLoacalBitmap("/sdcard/inbox/data/picture/"+imgurl+".png"); //从本地取图片
-//                    imageView.setImageBitmap(bitmap);	//设置Bitmap
-//
-////                    for(int i=0;i<mCabinetBeanList.size();i++){
-////                        OpenGoodsBean one= (OpenGoodsBean) mCabinetBeanList.get(i).getGoodsList();
-////                        String imgUrl=one.getImgUrl();
-////                        mid.append(imgUrl+"\n");
-////                    }
-////                    mconfig = iOpenService.getOpenGlobalConfig();
-////                    String server_addr = mconfig.getServerAddr();
-////                    mid.setText(server_addr);
-//
-//                } catch (RemoteException e) {
-//                    e.printStackTrace();
-//                }
-////                Intent in = new Intent(mContext, MainUI.class);
-////                startActivity(in);
-//            }
-//        });
     }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -244,6 +185,11 @@ public class SmartVM extends AppCompatActivity {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+    }
+
+    private void updateMainPage(){
+        mData.clear();
+        showMainPage();
     }
 
     @Override
